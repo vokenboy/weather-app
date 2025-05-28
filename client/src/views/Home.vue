@@ -2,32 +2,17 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { type Forecast } from "../types/Forecast";
 import { type WeatherData } from "../types/WeatherData";
+import { getWeatherByCity } from "../api/wheatherAPI.ts";
 import ForecastModal from "../components/ForecastModal.vue";
 import ForecastTable from "../components/ForecastTable.vue";
 
+const UPDATE_INTERVAL = 5 * 60 * 1000;
 const isModalOpen = ref(false);
 const searchTerm = ref("");
 const forecasts = ref<Forecast[]>([]);
 const currentPage = ref(1);
 const pageSize = 10;
 let nextId = ref(0);
-
-const filteredForecasts = computed(() => {
-    const term = searchTerm.value.trim().toLowerCase();
-    if (!term) return forecasts.value;
-    return forecasts.value.filter((f) => f.city.toLowerCase().includes(term) || f.country.toLowerCase().includes(term));
-});
-
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredForecasts.value.length / pageSize)));
-
-const paginatedForecasts = computed(() => {
-    const start = (currentPage.value - 1) * pageSize;
-    return filteredForecasts.value.slice(start, start + pageSize);
-});
-
-watch([searchTerm, filteredForecasts], () => {
-    currentPage.value = 1;
-});
 
 const setModalState = (state: boolean) => {
     isModalOpen.value = state;
@@ -59,13 +44,83 @@ const handleAdd = (data: WeatherData) => {
     setModalState(false);
 };
 
+const updateForecasts = async () => {
+    const updated: Forecast[] = [];
+
+    for (const oldForecast of forecasts.value) {
+        try {
+            const data = await getWeatherByCity(oldForecast.city);
+
+            const updatedForecast: Forecast = {
+                ...oldForecast,
+                iconUrl: `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`,
+                temperature: Math.round(data.main.temp),
+                humidity: data.main.humidity,
+                pressure: data.main.pressure,
+                windSpeed: data.wind.speed,
+                sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(),
+            };
+
+            updated.push(updatedForecast);
+        } catch (error) {
+            console.error(`Failed to update forecast for ${oldForecast.city}:`, error);
+        }
+    }
+
+    forecasts.value = updated;
+    localStorage.setItem("forecasts", JSON.stringify(updated));
+};
+
+const filteredForecasts = computed(() => {
+    const search = searchTerm.value.trim().toLowerCase();
+
+    if (search === "") {
+        return forecasts.value;
+    }
+
+    return forecasts.value.filter((forecast) => {
+        const city = forecast.city.toLowerCase();
+        const country = forecast.country.toLowerCase();
+        return city.includes(search) || country.includes(search);
+    });
+});
+
+const totalPages = computed(() => {
+    const totalItems = filteredForecasts.value.length;
+    const pages = Math.ceil(totalItems / pageSize);
+
+    if (pages < 1) {
+        return 1;
+    } else {
+        return pages;
+    }
+});
+
+const paginatedForecasts = computed(() => {
+    const start = (currentPage.value - 1) * pageSize;
+    return filteredForecasts.value.slice(start, start + pageSize);
+});
+
+watch([searchTerm, filteredForecasts], () => {
+    currentPage.value = 1;
+});
+
 onMounted(() => {
     const saved = localStorage.getItem("forecasts");
     if (saved) {
         const parsed: Forecast[] = JSON.parse(saved);
         forecasts.value = parsed;
-        nextId.value = Math.max(...parsed.map((f) => f.id).filter((id) => id !== undefined)) + 1;
+        let highestId = 0;
+
+        for (const forecast of parsed) {
+            if (forecast.id > highestId) {
+                highestId = forecast.id;
+            }
+        }
+
+        nextId.value = highestId + 1;
     }
+    setInterval(updateForecasts, UPDATE_INTERVAL);
 });
 </script>
 
@@ -78,7 +133,7 @@ onMounted(() => {
             <button @click="setModalState(true)" class="button is-primary">Add forecast</button>
         </div>
         <div class="mt-4">
-            <ForecastTable :forecasts="paginatedForecasts" @remove="handleRemove" />
+            <ForecastTable v-show="" :forecasts="paginatedForecasts" @remove="handleRemove" />
         </div>
 
         <nav class="pagination is-centered mt-4" role="navigation" aria-label="pagination">
