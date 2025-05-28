@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, ref } from "vue";
+import { ref } from "vue";
 import { type WeatherData } from "../types/WeatherData";
 import { getWeatherByCity, getWeatherByZip, getWeatherByCords } from "../api/wheatherAPI.ts";
 

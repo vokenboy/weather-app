@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps, defineEmits } from "vue";
 import { type Forecast } from "../types/Forecast";
 
 const props = defineProps<{
@@ -7,7 +6,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: "remove", id: number | undefined): any;
+    (e: "remove", id: number | undefined): void;
 }>();
 </script>
 

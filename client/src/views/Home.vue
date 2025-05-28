@@ -8,11 +8,9 @@ import ForecastTable from "../components/ForecastTable.vue";
 const isModalOpen = ref(false);
 const searchTerm = ref("");
 const forecasts = ref<Forecast[]>([]);
-let nextId = ref(0);
-
-// ── pagination state ──────────────────────────────────────────────────────────
 const currentPage = ref(1);
 const pageSize = 10;
+let nextId = ref(0);
 
 const filteredForecasts = computed(() => {
     const term = searchTerm.value.trim().toLowerCase();
@@ -35,7 +33,7 @@ const setModalState = (state: boolean) => {
     isModalOpen.value = state;
 };
 
-const handleRemove = (id: number) => {
+const handleRemove = (id: number | undefined) => {
     forecasts.value.splice(
         forecasts.value.findIndex((f) => f.id === id),
         1
@@ -66,7 +64,7 @@ onMounted(() => {
     if (saved) {
         const parsed: Forecast[] = JSON.parse(saved);
         forecasts.value = parsed;
-        nextId.value = Math.max(...parsed.map((f) => f.id)) + 1;
+        nextId.value = Math.max(...parsed.map((f) => f.id).filter((id) => id !== undefined)) + 1;
     }
 });
 </script>
@@ -79,7 +77,6 @@ onMounted(() => {
             <input v-model="searchTerm" class="input is-rounded" type="text" placeholder="Search by city or country" />
             <button @click="setModalState(true)" class="button is-primary">Add forecast</button>
         </div>
-
         <div class="mt-4">
             <ForecastTable :forecasts="paginatedForecasts" @remove="handleRemove" />
         </div>
