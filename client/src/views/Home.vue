@@ -115,7 +115,7 @@ onMounted(() => {
         let highestId = 0;
 
         for (const forecast of parsed) {
-            if (forecast.id > highestId) {
+            if (forecast.id !== undefined && forecast.id > highestId) {
                 highestId = forecast.id;
             }
         }
