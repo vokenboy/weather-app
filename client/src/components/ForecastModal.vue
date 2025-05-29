@@ -38,7 +38,7 @@ const handleAdd = async () => {
             data = await getWeatherByCords(lat, lon, "metric");
         } else if (/^\d{5}(,[A-Za-z]{2})?$/.test(query)) {
             const [zip, country] = query.split(",");
-            data = await getWeatherByZip(zip, country ?? "lt", "metric");
+            data = await getWeatherByZip(zip, country, "metric");
         } else {
             data = await getWeatherByCity(query, "metric");
         }

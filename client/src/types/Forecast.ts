@@ -8,4 +8,5 @@ export interface Forecast {
     pressure: number;
     windSpeed: number;
     sunsetTime: string;
+    sunriseTime: string;
 }

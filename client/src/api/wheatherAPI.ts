@@ -18,7 +18,7 @@ export const getWeatherByCity = async (city: string, units = "metric") => {
     }
 };
 
-export const getWeatherByZip = async (zip: string, countryCode: string = "lt", units: string = "metric") => {
+export const getWeatherByZip = async (zip: string, countryCode: string, units: string = "metric") => {
     try {
         const zipParam = `${zip},${countryCode}`;
         const { data } = await axios.get(`${BASE_URL}/weather`, {

@@ -23,6 +23,7 @@ const emit = defineEmits<{
                     <th>Pressure</th>
                     <th>Wind (km/h)</th>
                     <th>Sunset</th>
+                    <th>Sunrise</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -40,6 +41,7 @@ const emit = defineEmits<{
                     <td>{{ forecast.pressure }} hPa</td>
                     <td>{{ forecast.windSpeed }} km/h</td>
                     <td>{{ forecast.sunsetTime }}</td>
+                    <td>{{ forecast.sunriseTime }}</td>
                     <td>
                         <button class="button is-small is-danger" @click="emit('remove', forecast.id)">Remove</button>
                     </td>

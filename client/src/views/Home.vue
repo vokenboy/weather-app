@@ -38,8 +38,9 @@ const handleAdd = (data: WeatherData) => {
         pressure: data.main.pressure,
         windSpeed: data.wind.speed,
         sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(),
+        sunriseTime: new Date(data.sys.sunrise * 1000).toLocaleTimeString(),
     };
-    forecasts.value.push(forecast);
+    forecasts.value.unshift(forecast);
     localStorage.setItem("forecasts", JSON.stringify(forecasts.value));
     setModalState(false);
 };
@@ -59,6 +60,7 @@ const updateForecasts = async () => {
                 pressure: data.main.pressure,
                 windSpeed: data.wind.speed,
                 sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(),
+                sunriseTime: new Date(data.sys.sunrise * 1000).toLocaleTimeString(),
             };
 
             updated.push(updatedForecast);
@@ -133,20 +135,29 @@ onMounted(() => {
             <button @click="setModalState(true)" class="button is-primary">Add forecast</button>
         </div>
         <div class="mt-4">
-            <ForecastTable v-show="" :forecasts="paginatedForecasts" @remove="handleRemove" />
+            <ForecastTable
+                v-show="paginatedForecasts.length > 0"
+                :forecasts="paginatedForecasts"
+                @remove="handleRemove"
+            />
         </div>
 
-        <nav class="pagination is-centered mt-4" role="navigation" aria-label="pagination">
+        <nav
+            v-show="paginatedForecasts.length > 0"
+            class="pagination is-centered mt-4"
+            role="navigation"
+            aria-label="pagination"
+        >
             <button class="pagination-previous" :disabled="currentPage === 1" @click="currentPage--">Previous</button>
             <button class="pagination-next" :disabled="currentPage === totalPages" @click="currentPage++">Next</button>
             <ul class="pagination-list">
-                <li v-for="n in totalPages" :key="n">
+                <li v-for="page in totalPages" :key="page">
                     <button
                         class="pagination-link"
-                        :class="{ 'is-current': n === currentPage }"
-                        @click="currentPage = n"
+                        :class="{ 'is-current': page === currentPage }"
+                        @click="currentPage = page"
                     >
-                        {{ n }}
+                        {{ page }}
                     </button>
                 </li>
             </ul>
@@ -165,8 +176,5 @@ button {
 }
 input {
     max-width: 600px;
-}
-.pagination-list .pagination-link {
-    margin: 0 0.25rem;
 }
 </style>
