@@ -16,12 +16,12 @@ const emit = defineEmits<{
             <thead>
                 <tr>
                     <th>Icon</th>
-                    <th>Temp (°C)</th>
+                    <th>°C</th>
                     <th>City</th>
                     <th>Country</th>
                     <th>Humidity</th>
                     <th>Pressure</th>
-                    <th>Wind (km/h)</th>
+                    <th>Wind Speed</th>
                     <th>Sunset</th>
                     <th>Sunrise</th>
                     <th>Action</th>

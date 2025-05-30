@@ -5,6 +5,7 @@ import { type WeatherData } from "../types/WeatherData";
 import { getWeatherByCity } from "../api/wheatherAPI.ts";
 import ForecastModal from "../components/ForecastModal.vue";
 import ForecastTable from "../components/ForecastTable.vue";
+import Pagination from "../components/Pagination.vue";
 
 const UPDATE_INTERVAL = 5 * 60 * 1000;
 const successMessage = ref(null);
@@ -12,13 +13,12 @@ const isModalOpen = ref(false);
 const searchTerm = ref("");
 const forecasts = ref<Forecast[]>([]);
 const currentPage = ref(1);
-const pageSize = 10;
 let nextId = ref(0);
 
-function setStatus(status: string) {
+const setStatus = (status: string) => {
     successMessage.value = status;
     setTimeout(() => (successMessage.value = null), 3000);
-}
+};
 
 const setModalState = (state: boolean) => {
     isModalOpen.value = state;
@@ -26,7 +26,7 @@ const setModalState = (state: boolean) => {
 
 const handleRemove = (id: number | undefined) => {
     forecasts.value.splice(
-        forecasts.value.findIndex((f) => f.id === id),
+        forecasts.value.findIndex((forecast) => forecast.id === id),
         1
     );
     localStorage.setItem("forecasts", JSON.stringify(forecasts.value));
@@ -44,8 +44,12 @@ const handleAdd = (data: WeatherData) => {
         humidity: data.main.humidity,
         pressure: data.main.pressure,
         windSpeed: data.wind.speed,
-        sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(),
-        sunriseTime: new Date(data.sys.sunrise * 1000).toLocaleTimeString(),
+        sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(
+            "lt-LT"
+        ),
+        sunriseTime: new Date(data.sys.sunrise * 1000).toLocaleTimeString(
+            "lt-LT"
+        ),
     };
     forecasts.value.unshift(forecast);
     localStorage.setItem("forecasts", JSON.stringify(forecasts.value));
@@ -67,12 +71,12 @@ const updateForecasts = async () => {
                 humidity: data.main.humidity,
                 pressure: data.main.pressure,
                 windSpeed: data.wind.speed,
-                sunsetTime: new Date(
-                    data.sys.sunset * 1000
-                ).toLocaleTimeString(),
+                sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(
+                    "lt-LT"
+                ),
                 sunriseTime: new Date(
                     data.sys.sunrise * 1000
-                ).toLocaleTimeString(),
+                ).toLocaleTimeString("lt-LT"),
             };
 
             updated.push(updatedForecast);
@@ -91,10 +95,6 @@ const updateForecasts = async () => {
 const filteredForecasts = computed(() => {
     const search = searchTerm.value.trim().toLowerCase();
 
-    if (search === "") {
-        return forecasts.value;
-    }
-
     return forecasts.value.filter((forecast) => {
         const city = forecast.city.toLowerCase();
         const country = forecast.country.toLowerCase();
@@ -104,7 +104,7 @@ const filteredForecasts = computed(() => {
 
 const totalPages = computed(() => {
     const totalItems = filteredForecasts.value.length;
-    const pages = Math.ceil(totalItems / pageSize);
+    const pages = Math.ceil(totalItems / 10);
 
     if (pages < 1) {
         return 1;
@@ -114,8 +114,8 @@ const totalPages = computed(() => {
 });
 
 const paginatedForecasts = computed(() => {
-    const start = (currentPage.value - 1) * pageSize;
-    return filteredForecasts.value.slice(start, start + pageSize);
+    const start = (currentPage.value - 1) * 10;
+    return filteredForecasts.value.slice(start, start + 10);
 });
 
 watch([searchTerm, filteredForecasts], () => {
@@ -162,48 +162,24 @@ onMounted(() => {
             </button>
         </div>
         <div class="mt-4">
-            <p v-if="successMessage" class="help is-success">
-                {{ successMessage }}
-            </p>
+            <div class="status">
+                <p v-if="successMessage" class="help is-success">
+                    {{ successMessage }}
+                </p>
+            </div>
             <ForecastTable
                 v-show="paginatedForecasts.length > 0"
                 :forecasts="paginatedForecasts"
                 @remove="handleRemove"
             />
         </div>
-
-        <nav
+        <Pagination
             v-show="paginatedForecasts.length > 0"
-            class="pagination is-centered mt-4"
-            role="navigation"
-            aria-label="pagination"
-        >
-            <button
-                class="pagination-previous"
-                :disabled="currentPage === 1"
-                @click="currentPage--"
-            >
-                Previous
-            </button>
-            <button
-                class="pagination-next"
-                :disabled="currentPage === totalPages"
-                @click="currentPage++"
-            >
-                Next
-            </button>
-            <ul class="pagination-list">
-                <li v-for="page in totalPages" :key="page">
-                    <button
-                        class="pagination-link"
-                        :class="{ 'is-current': page === currentPage }"
-                        @click="currentPage = page"
-                    >
-                        {{ page }}
-                    </button>
-                </li>
-            </ul>
-        </nav>
+            v-if="paginatedForecasts.length > 0"
+            :current-page="currentPage"
+            :total-pages="totalPages"
+            @update:currentPage="currentPage = $event"
+        />
     </div>
 </template>
 
@@ -212,6 +188,9 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     padding: 1rem;
+}
+.status {
+    min-height: 1.5em;
 }
 button {
     margin-left: 1rem;
