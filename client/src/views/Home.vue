@@ -8,16 +8,18 @@ import ForecastTable from "../components/ForecastTable.vue";
 import Pagination from "../components/Pagination.vue";
 
 const UPDATE_INTERVAL = 5 * 60 * 1000;
-const successMessage = ref<string | null>(null);
+const statusMessage = ref<string | null>(null);
+const statusType = ref<"success" | "danger">("success");
 const isModalOpen = ref(false);
 const searchTerm = ref("");
 const forecasts = ref<Forecast[]>([]);
 const currentPage = ref(1);
 let nextId = ref(0);
 
-const setStatus = (status: string) => {
-    successMessage.value = status;
-    setTimeout(() => (successMessage.value = null), 3000);
+const setStatus = (message: string, type: "success" | "danger") => {
+    statusMessage.value = message;
+    statusType.value = type;
+    setTimeout(() => (statusMessage.value = null), 3000);
 };
 
 const setModalState = (state: boolean) => {
@@ -30,10 +32,17 @@ const handleRemove = (id: number | undefined) => {
         1
     );
     localStorage.setItem("forecasts", JSON.stringify(forecasts.value));
-    setStatus("Forecast removed");
+    setStatus("Forecast removed", "success");
 };
 
 const handleAdd = (data: WeatherData) => {
+    // if forecast exists
+    // const exists = forecasts.value.some((forecast) => forecast.city === data.name);
+    // if (exists) {
+    //     setStatus(`Forecast for ${data.name} already added`, "danger");
+    //     return;
+    // }
+
     const id = nextId.value++;
     const forecast: Forecast = {
         id,
@@ -44,17 +53,13 @@ const handleAdd = (data: WeatherData) => {
         humidity: data.main.humidity,
         pressure: data.main.pressure,
         windSpeed: data.wind.speed,
-        sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(
-            "lt-LT"
-        ),
-        sunriseTime: new Date(data.sys.sunrise * 1000).toLocaleTimeString(
-            "lt-LT"
-        ),
+        sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString("lt-LT"),
+        sunriseTime: new Date(data.sys.sunrise * 1000).toLocaleTimeString("lt-LT"),
     };
     forecasts.value.unshift(forecast);
     localStorage.setItem("forecasts", JSON.stringify(forecasts.value));
     setModalState(false);
-    setStatus("Forecast added");
+    setStatus("Forecast added", "success");
 };
 
 const updateForecasts = async () => {
@@ -71,20 +76,13 @@ const updateForecasts = async () => {
                 humidity: data.main.humidity,
                 pressure: data.main.pressure,
                 windSpeed: data.wind.speed,
-                sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(
-                    "lt-LT"
-                ),
-                sunriseTime: new Date(
-                    data.sys.sunrise * 1000
-                ).toLocaleTimeString("lt-LT"),
+                sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString("lt-LT"),
+                sunriseTime: new Date(data.sys.sunrise * 1000).toLocaleTimeString("lt-LT"),
             };
 
             updated.push(updatedForecast);
         } catch (error) {
-            console.error(
-                `Failed to update forecast for ${oldForecast.city}:`,
-                error
-            );
+            console.error(`Failed to update forecast for ${oldForecast.city}:`, error);
         }
     }
 
@@ -142,30 +140,22 @@ onMounted(() => {
 </script>
 
 <template>
-    <ForecastModal
-        v-if="isModalOpen"
-        :show="isModalOpen"
-        @close="setModalState(false)"
-        @add="handleAdd"
-    />
+    <ForecastModal v-if="isModalOpen" :show="isModalOpen" @close="setModalState(false)" @add="handleAdd" />
 
     <div class="container">
         <div class="controls">
-            <input
-                v-model="searchTerm"
-                class="input is-rounded"
-                type="text"
-                placeholder="Search by city or country"
-            />
-            <button @click="setModalState(true)" class="button is-primary">
-                Add forecast
-            </button>
+            <input v-model="searchTerm" class="input is-rounded" type="text" placeholder="Search by city or country" />
+            <button @click="setModalState(true)" class="button is-primary">Add forecast</button>
         </div>
         <div class="mt-4">
             <div class="status">
-                <p v-if="successMessage" class="help is-success">
-                    {{ successMessage }}
+                <p v-if="statusMessage" :class="`help is-${statusType}`">
+                    {{ statusMessage }}
                 </p>
+                <p v-else-if="searchTerm.trim() !== '' && filteredForecasts.length === 0" class="help is-danger">
+                    No forecast found for {{ searchTerm }}
+                </p>
+                <p v-else-if="forecasts.length === 0" class="help is-danger">No forecasts available</p>
             </div>
             <ForecastTable
                 v-show="paginatedForecasts.length > 0"

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { type WeatherData } from "../types/WeatherData";
-import {
-    getWeatherByCity,
-    getWeatherByZip,
-    getWeatherByCords,
-} from "../api/wheatherAPI.ts";
+import { getWeatherByCity, getWeatherByZip, getWeatherByCords } from "../api/wheatherAPI.ts";
 
 const props = defineProps<{
     show: boolean;
@@ -36,9 +32,7 @@ const handleAdd = async () => {
     try {
         let data: WeatherData;
 
-        const coordMatch = query.match(
-            /^\s*([+\-]?\d+(\.\d+)?)\s*,\s*([+\-]?\d+(\.\d+)?)\s*$/
-        );
+        const coordMatch = query.match(/^\s*([+\-]?\d+(\.\d+)?)\s*,\s*([+\-]?\d+(\.\d+)?)\s*$/);
         if (coordMatch) {
             const [, lat, , lon] = coordMatch;
             data = await getWeatherByCords(lat, lon, "metric");
@@ -66,20 +60,13 @@ const handleAdd = async () => {
             </div>
             <div class="modal-card-body">
                 <div class="field">
-                    <input
-                        v-model="search"
-                        class="input"
-                        type="text"
-                        placeholder="e.g. City, ZIP, or Coordinates"
-                    />
+                    <input v-model="search" class="input" type="text" placeholder="e.g. City, ZIP, or Coordinates" />
                     <p v-if="error" class="help is-danger">{{ error }}</p>
                 </div>
             </div>
             <div class="modal-card-foot">
                 <div class="buttons">
-                    <button @click="handleAdd" class="button is-primary">
-                        Add
-                    </button>
+                    <button @click="handleAdd" class="button is-primary">Add</button>
                     <button @click="handleClose" class="button">Close</button>
                 </div>
             </div>

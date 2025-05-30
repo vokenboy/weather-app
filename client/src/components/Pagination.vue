@@ -15,23 +15,11 @@ const changePage = (page: number) => {
 };
 </script>
 <template>
-    <nav
-        class="pagination is-centered mt-4"
-        role="navigation"
-        aria-label="pagination"
-    >
-        <button
-            class="pagination-previous"
-            :disabled="currentPage === 1"
-            @click="changePage(currentPage - 1)"
-        >
+    <nav class="pagination is-centered mt-4" role="navigation" aria-label="pagination">
+        <button class="pagination-previous" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
             Previous
         </button>
-        <button
-            class="pagination-next"
-            :disabled="currentPage === totalPages"
-            @click="changePage(currentPage + 1)"
-        >
+        <button class="pagination-next" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
             Next
         </button>
         <ul class="pagination-list">

@@ -43,12 +43,7 @@ const emit = defineEmits<{
                     <td>{{ forecast.sunsetTime }}</td>
                     <td>{{ forecast.sunriseTime }}</td>
                     <td>
-                        <button
-                            class="button is-small is-danger"
-                            @click="emit('remove', forecast.id)"
-                        >
-                            Remove
-                        </button>
+                        <button class="button is-small is-danger" @click="emit('remove', forecast.id)">Remove</button>
                     </td>
                 </tr>
             </tbody>
