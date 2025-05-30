@@ -7,12 +7,18 @@ import ForecastModal from "../components/ForecastModal.vue";
 import ForecastTable from "../components/ForecastTable.vue";
 
 const UPDATE_INTERVAL = 5 * 60 * 1000;
+const successMessage = ref(null);
 const isModalOpen = ref(false);
 const searchTerm = ref("");
 const forecasts = ref<Forecast[]>([]);
 const currentPage = ref(1);
 const pageSize = 10;
 let nextId = ref(0);
+
+function setStatus(status: string) {
+    successMessage.value = status;
+    setTimeout(() => (successMessage.value = null), 3000);
+}
 
 const setModalState = (state: boolean) => {
     isModalOpen.value = state;
@@ -24,6 +30,7 @@ const handleRemove = (id: number | undefined) => {
         1
     );
     localStorage.setItem("forecasts", JSON.stringify(forecasts.value));
+    setStatus("Forecast removed");
 };
 
 const handleAdd = (data: WeatherData) => {
@@ -43,6 +50,7 @@ const handleAdd = (data: WeatherData) => {
     forecasts.value.unshift(forecast);
     localStorage.setItem("forecasts", JSON.stringify(forecasts.value));
     setModalState(false);
+    setStatus("Forecast added");
 };
 
 const updateForecasts = async () => {
@@ -59,13 +67,20 @@ const updateForecasts = async () => {
                 humidity: data.main.humidity,
                 pressure: data.main.pressure,
                 windSpeed: data.wind.speed,
-                sunsetTime: new Date(data.sys.sunset * 1000).toLocaleTimeString(),
-                sunriseTime: new Date(data.sys.sunrise * 1000).toLocaleTimeString(),
+                sunsetTime: new Date(
+                    data.sys.sunset * 1000
+                ).toLocaleTimeString(),
+                sunriseTime: new Date(
+                    data.sys.sunrise * 1000
+                ).toLocaleTimeString(),
             };
 
             updated.push(updatedForecast);
         } catch (error) {
-            console.error(`Failed to update forecast for ${oldForecast.city}:`, error);
+            console.error(
+                `Failed to update forecast for ${oldForecast.city}:`,
+                error
+            );
         }
     }
 
@@ -110,11 +125,11 @@ watch([searchTerm, filteredForecasts], () => {
 onMounted(() => {
     const saved = localStorage.getItem("forecasts");
     if (saved) {
-        const parsed: Forecast[] = JSON.parse(saved);
-        forecasts.value = parsed;
+        const parsedForecasts: Forecast[] = JSON.parse(saved);
+        forecasts.value = parsedForecasts;
         let highestId = 0;
 
-        for (const forecast of parsed) {
+        for (const forecast of parsedForecasts) {
             if (forecast.id !== undefined && forecast.id > highestId) {
                 highestId = forecast.id;
             }
@@ -127,14 +142,29 @@ onMounted(() => {
 </script>
 
 <template>
-    <ForecastModal v-if="isModalOpen" :show="isModalOpen" @close="setModalState(false)" @add="handleAdd" />
+    <ForecastModal
+        v-if="isModalOpen"
+        :show="isModalOpen"
+        @close="setModalState(false)"
+        @add="handleAdd"
+    />
 
     <div class="container">
         <div class="controls">
-            <input v-model="searchTerm" class="input is-rounded" type="text" placeholder="Search by city or country" />
-            <button @click="setModalState(true)" class="button is-primary">Add forecast</button>
+            <input
+                v-model="searchTerm"
+                class="input is-rounded"
+                type="text"
+                placeholder="Search by city or country"
+            />
+            <button @click="setModalState(true)" class="button is-primary">
+                Add forecast
+            </button>
         </div>
         <div class="mt-4">
+            <p v-if="successMessage" class="help is-success">
+                {{ successMessage }}
+            </p>
             <ForecastTable
                 v-show="paginatedForecasts.length > 0"
                 :forecasts="paginatedForecasts"
@@ -148,8 +178,20 @@ onMounted(() => {
             role="navigation"
             aria-label="pagination"
         >
-            <button class="pagination-previous" :disabled="currentPage === 1" @click="currentPage--">Previous</button>
-            <button class="pagination-next" :disabled="currentPage === totalPages" @click="currentPage++">Next</button>
+            <button
+                class="pagination-previous"
+                :disabled="currentPage === 1"
+                @click="currentPage--"
+            >
+                Previous
+            </button>
+            <button
+                class="pagination-next"
+                :disabled="currentPage === totalPages"
+                @click="currentPage++"
+            >
+                Next
+            </button>
             <ul class="pagination-list">
                 <li v-for="page in totalPages" :key="page">
                     <button
