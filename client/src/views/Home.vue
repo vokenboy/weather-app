@@ -8,7 +8,7 @@ import ForecastTable from "../components/ForecastTable.vue";
 import Pagination from "../components/Pagination.vue";
 
 const UPDATE_INTERVAL = 5 * 60 * 1000;
-const successMessage = ref(null);
+const successMessage = ref<string | null>(null);
 const isModalOpen = ref(false);
 const searchTerm = ref("");
 const forecasts = ref<Forecast[]>([]);
