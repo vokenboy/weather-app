@@ -36,12 +36,11 @@ const handleRemove = (id: number | undefined) => {
 };
 
 const handleAdd = (data: WeatherData) => {
-    // if forecast exists
-    // const exists = forecasts.value.some((forecast) => forecast.city === data.name);
-    // if (exists) {
-    //     setStatus(`Forecast for ${data.name} already added`, "danger");
-    //     return;
-    // }
+    const exists = forecasts.value.some((forecast) => forecast.city === data.name);
+    if (exists) {
+        setStatus(`Forecast for ${data.name} already added`, "danger");
+        return;
+    }
 
     const id = nextId.value++;
     const forecast: Forecast = {
