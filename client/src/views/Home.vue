@@ -135,6 +135,8 @@ onMounted(() => {
 
         nextId.value = highestId + 1;
     }
+
+    updateForecasts();
     setInterval(updateForecasts, UPDATE_INTERVAL);
 });
 </script>
@@ -155,7 +157,6 @@ onMounted(() => {
                 <p v-else-if="searchTerm.trim() !== '' && filteredForecasts.length === 0" class="help is-danger">
                     No forecast found for {{ searchTerm }}
                 </p>
-                <p v-else-if="forecasts.length === 0" class="help is-danger">No forecasts available</p>
             </div>
             <ForecastTable
                 v-show="paginatedForecasts.length > 0"

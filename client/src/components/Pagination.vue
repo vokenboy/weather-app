@@ -9,8 +9,12 @@ const emit = defineEmits<{
 }>();
 
 const changePage = (page: number) => {
-    if (page < 1) page = 1;
-    if (page > props.totalPages) page = props.totalPages;
+    if (page < 1) {
+        page = 1;
+    }
+    if (page > props.totalPages) {
+        page = props.totalPages;
+    }
     emit("update:currentPage", page);
 };
 </script>
