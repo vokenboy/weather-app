@@ -48,3 +48,8 @@
     ```bash
     npx http-server ./dist
     ```
+
+### Screenshots
+
+![home page](images/home-page.png)
+![modal](images/modal.png)
